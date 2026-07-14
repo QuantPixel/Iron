@@ -1,6 +1,6 @@
 ﻿{
-  "short_name": "BLE App",
-  "name": "ESP Iron control",
+  "short_name": "Soldering",
+  "name": "ESP Soldering Control",
   "icons": [
     {
       "src": "icon-192.png",
