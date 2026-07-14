@@ -1,6 +1,6 @@
 ﻿{
   "short_name": "BLE App",
-  "name": "Мое BLE Приложение",
+  "name": "ESP Iron control",
   "icons": [
     {
       "src": "icon-192.png",
