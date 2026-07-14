@@ -1435,6 +1435,18 @@ document.addEventListener("DOMContentLoaded", function () {
 	setupRangeListener("autoOffRange", "autoOffTxt", " мин");
 });
 
+let wakeLock = null;
+
+// Функция активации (простая и без лишних проверок)
+async function activateWakeLock() {
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    alert('Успех: Экран заблокирован от угасания!'); // Временно для теста на телефоне
+  } catch (err) {
+    alert('Ошибка Wake Lock: ' + err.message); // Покажет точную причину
+  }
+}		
+
 // Переключение видимости выезжающего меню
 function toggleSidebar() { 
     document.getElementById("sidebar").classList.toggle("open"); // Переключатель закрытия / открытия шторки меню
@@ -1496,7 +1508,7 @@ async function connectBLE() {
 		await delay(500); 
 		await pCharacteristic.startNotifications();											// Настраиваем подписку на входящий поток 
 		pCharacteristic.addEventListener('characteristicvaluechanged', handleIncomingJSON);	// Подключаем внешнюю функцию обработки входящего JSON
-		
+		 await activateWakeLock();
 		jeso = '{'
 			+ '"type":'
 			+ '"star"'
