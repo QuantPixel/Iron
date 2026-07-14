@@ -4,6 +4,7 @@
     <title>ESP Iron control</title>
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+	<link rel="manifest" href="manifest.json">
 	<meta name="theme-color" content="#2D3748">
 	<meta name="msapplication-navbutton-color" content="#2D3748">
 	<meta name = "apple-mobile-web-app-capable" content = "yes">
@@ -2153,6 +2154,15 @@ document.querySelectorAll('.key').forEach(key => {
         stopTone(note); 
     });
 });
+
+		if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((reg) => console.log('Service Worker успешно зарегистрирован!', reg))
+        .catch((err) => console.error('Ошибка регистрации Service Worker:', err));
+    });
+  }
+
 
 	</script>
 </body>
