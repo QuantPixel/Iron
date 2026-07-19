@@ -48,33 +48,33 @@ async function downloadCSVFromBLE() {
     try {
         console.log("Запуск сканирования BLE...");
         
-        // Переключаемся на прием всех устройств, чтобы обойти баги с распознаванием имен в режиме сканирования
+        // ИСПРАВЛЕНО: Для сканирования рекламы используется параметр acceptAllAdvertisements
         const scan = await navigator.bluetooth.requestLEScan({
-            acceptAllDevices: true,
+            acceptAllAdvertisements: true,
             keepRepeatedDevices: true 
         });
 
-        console.log("Сканирование активно. Ожидаем пакеты данных...");
+        console.log("Сканирование успешно активировано. Ожидаем пакеты данных...");
 
         navigator.bluetooth.addEventListener('advertisementreceived', event => {
-            // Выводим в консоль вообще все устройства, которые видит ПК, для теста
-            // console.log("Замечено устройство:", event.device.name || "Без имени");
+            // Включаем этот лог, чтобы увидеть ВСЕ устройства вокруг и убедиться, что сканер работает
+            console.log("Замечено BLE устройство:", event.device.name || "Без имени (анонимное)");
 
-            // Проверяем наш маркер Manufacturer Data (0xFFFF)
+            // Проверяем наш кастомный маркер данных (0xFFFF), который мы зашили в скетч ESP32-H2
             if (event.manufacturerData && event.manufacturerData.has(0xFFFF)) {
-                console.log("Ура! Поймали наш пакет от ESP32-H2!");
+                console.log("Ура! Поймали целевой пакет от нашего ESP32-H2!");
                 
                 const dataView = event.manufacturerData.get(0xFFFF);
                 
-                // Читаем байты (В DataView они идут сразу после ID компании)
-                const rawTemp = dataView.getInt16(0, true); // true = Little Endian
+                // Читаем байты структуры ( Little Endian )
+                const rawTemp = dataView.getInt16(0, true); 
                 const rawHum = dataView.getUint16(2, true);
                 const packetId = dataView.getUint32(4, true);
 
                 const temperature = rawTemp / 100;
                 const humidity = rawHum / 100;
 
-                console.log(`>>> УСПЕХ! Данные пакета #${packetId}: Т = ${temperature}°C, В = ${humidity}%`);
+                console.log(`>>> УСПЕХ! [#${packetId}] Температура = ${temperature}°C, Влажность = ${humidity}%`);
             }
         });
 
@@ -82,6 +82,7 @@ async function downloadCSVFromBLE() {
         console.error("Ошибка сканирования:", error);
     }
 }
+
 
 
 function downloadFile(content, fileName, contentType) {
