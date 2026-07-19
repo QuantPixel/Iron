@@ -45,37 +45,36 @@ const CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 let bleDevice = null;
 
 async function downloadCSVFromBLE() {
-	try {
+    try {
         console.log("Запуск сканирования BLE...");
         
-        // Запрашиваем сканирование устройств, у которых имя начинается с 'ESP32-H2'
+        // Переключаемся на прием всех устройств, чтобы обойти баги с распознаванием имен в режиме сканирования
         const scan = await navigator.bluetooth.requestLEScan({
-            filters: [{ namePrefix: 'ESP32-H2' }],
-            keepRepeatedDevices: true // Получать пакеты непрерывно при каждом обновлении эфира
+            acceptAllDevices: true,
+            keepRepeatedDevices: true 
         });
 
-        // Слушаем входящие рекламные пакеты
-        navigator.bluetooth.addEventListener('advertisementreceived', event => {
-            console.log(`Получен пакет от: ${event.device.name}`);
+        console.log("Сканирование активно. Ожидаем пакеты данных...");
 
-            // Проверяем, есть ли внутри Manufacturer Data
+        navigator.bluetooth.addEventListener('advertisementreceived', event => {
+            // Выводим в консоль вообще все устройства, которые видит ПК, для теста
+            // console.log("Замечено устройство:", event.device.name || "Без имени");
+
+            // Проверяем наш маркер Manufacturer Data (0xFFFF)
             if (event.manufacturerData && event.manufacturerData.has(0xFFFF)) {
+                console.log("Ура! Поймали наш пакет от ESP32-H2!");
+                
                 const dataView = event.manufacturerData.get(0xFFFF);
                 
-                // Читаем байты в том же порядке, в каком упаковывали на ESP32-H2
-                // (Пропускаем первые 2 байта ID компании, DataView начинается сразу с полезных данных)
-                const rawTemp = dataView.getInt16(0, true);  // true для Little Endian (формат ESP32)
+                // Читаем байты (В DataView они идут сразу после ID компании)
+                const rawTemp = dataView.getInt16(0, true); // true = Little Endian
                 const rawHum = dataView.getUint16(2, true);
                 const packetId = dataView.getUint32(4, true);
 
-                // Делим обратно на 100, чтобы получить дробную часть
                 const temperature = rawTemp / 100;
                 const humidity = rawHum / 100;
 
-                console.log(`Данные пакета #${packetId}: Tемпература = ${temperature}°C, Влажность = ${humidity}%`);
-                
-                // Здесь вы можете сразу обновить элементы на вашей веб-странице:
-                // document.getElementById("temp").innerText = temperature + " °C";
+                console.log(`>>> УСПЕХ! Данные пакета #${packetId}: Т = ${temperature}°C, В = ${humidity}%`);
             }
         });
 
@@ -83,6 +82,7 @@ async function downloadCSVFromBLE() {
         console.error("Ошибка сканирования:", error);
     }
 }
+
 
 function downloadFile(content, fileName, contentType) {
     const a = document.createElement("a");
